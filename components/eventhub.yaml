@@ -1,0 +1,27 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: telemetryeventhub
+  namespace: default
+spec:
+  type: pubsub.azure.eventhubs
+  version: v1
+  metadata:
+  - name: connectionString
+    secretKeyRef:
+      name: eventhubconnectionstring
+      key:  eventhubconnectionstring
+  - name: consumerGroup   
+    value: "test"
+  - name: storageAccountName 
+    secretKeyRef:
+      name: storageaccname
+      key:  storageaccname
+  - name: storageAccountKey
+    secretKeyRef:
+      name: storageacckey
+      key:  storageacckey                
+  - name: storageContainerName
+    value: "otatelemetrystorcontainer"   
+auth:
+  secretStore: localsecretstore
