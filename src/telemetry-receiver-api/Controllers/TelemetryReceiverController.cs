@@ -18,9 +18,17 @@ namespace telemetry_receiver_api.Controllers
             _logger = logger;
         }
 
+        [Topic("telemetryeventhub", "daprhub1")]
+        [HttpPost("ehtelemetry")]
+        public IActionResult EhTelemetryReceive()
+        {
+            _logger.LogInformation("test");
+            return new OkResult();
+        }
+
         [Topic("servicebus-pubsub", "deviceevents")]
-        [HttpPost("telemetry")]
-        public IActionResult Get()
+        [HttpPost("sbtelemetry")]
+        public IActionResult SbTelemetryReceive()
         {
             _logger.LogInformation("test");
             return new OkResult();

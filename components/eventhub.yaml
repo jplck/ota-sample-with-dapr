@@ -12,7 +12,7 @@ spec:
       name: eventhubconnectionstring
       key:  eventhubconnectionstring
   - name: consumerGroup   
-    value: "test"
+    value: "$Default"
   - name: storageAccountName 
     secretKeyRef:
       name: storageaccname
