@@ -1,7 +1,7 @@
 name: telemetry-api-build-and-push
 
 env:
-  PROJECT_FILE_PATH: '../../src/telemetry-receiver-api'
+  PROJECT_FILE_PATH: './src/telemetry-receiver-api'
 
 on:
   workflow_dispatch:
@@ -20,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    
     - name: 'Resolve Project Dependencies Using Dotnet'
       shell: bash
       run: |
