@@ -1,0 +1,29 @@
+name: telemetry-api-build-and-push
+
+env:
+  PROJECT_FILE_PATH: './src/telemetry-receiver-api'
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: 
+      "${{env.PROJECT_FILE_PATH}}/**"
+  pull_request:
+    branches: [ main ]
+    paths: 
+      "${{env.PROJECT_FILE_PATH}}/**"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Resolve Project Dependencies Using Dotnet'
+      shell: bash
+      run: |
+        pushd '${{ env.PROJECT_FILE_PATH }}'
+        docker login -u ${{secrets.docker_username}} -p ${{secrets.docker_pwd}}
+        docker build --push -t daprexpacr.azurecr.io/telemetryreceiverapi:latest .
+        popd
