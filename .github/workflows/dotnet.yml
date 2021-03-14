@@ -38,5 +38,6 @@ jobs:
       shell: bash
       run: |
         pushd '${{env.PROJECT_FILE_PATH}}'
-        docker build --push -t daprexpacr.azurecr.io/telemetryreceiverapi:latest .
+        docker build -t daprexpacr.azurecr.io/telemetryreceiverapi:latest .
+        docker push daprexpacr.azurecr.io/telemetryreceiverapi:latest
         popd
