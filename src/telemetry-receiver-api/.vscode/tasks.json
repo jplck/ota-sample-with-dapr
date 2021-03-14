@@ -44,7 +44,8 @@
             "label": "daprd-debug",
             "type": "daprd",
             "dependsOn": "build",
-            "componentsPath": "../../components"
+            "componentsPath": "../../components",
+            "logLevel": "debug"
         },
         {
             "appId": "telemetry-receiver-api",

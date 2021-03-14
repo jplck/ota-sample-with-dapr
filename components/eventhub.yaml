@@ -4,7 +4,7 @@ metadata:
   name: telemetryeventhub
   namespace: default
 spec:
-  type: pubsub.azure.eventhubs
+  type: bindings.azure.eventhubs
   version: v1
   metadata:
   - name: connectionString
@@ -12,7 +12,7 @@ spec:
       name: eventhubconnectionstring
       key:  eventhubconnectionstring
   - name: consumerGroup   
-    value: "$Default"
+    value: "telemetry-receiver-api"
   - name: storageAccountName 
     secretKeyRef:
       name: storageaccname
@@ -24,4 +24,4 @@ spec:
   - name: storageContainerName
     value: "otatelemetrystorcontainer"   
 auth:
-  secretStore: localsecretstore
+  secretStore: azurekeyvault

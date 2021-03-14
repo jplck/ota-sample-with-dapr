@@ -33,7 +33,13 @@ namespace ota_update_management.Controllers
 
                 _logger.LogInformation($"Received manifest with config id {message.ConfigId}");
 
-                var hubConnectionSecret = await daprClient.GetSecretAsync("localsecretstore", "IotHubConnectionString");
+                var secretStore = "azurekeyvault";
+
+                #if (DEBUG) 
+                    secretStore = "localsecretstore";
+                #endif
+
+                var hubConnectionSecret = await daprClient.GetSecretAsync(secretStore, "IotHubConnectionString");
                 var hubConnectionString = hubConnectionSecret.Values.First<string>();
 
                 var registryManager = RegistryManager.CreateFromConnectionString(hubConnectionString);

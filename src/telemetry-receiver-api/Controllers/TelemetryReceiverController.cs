@@ -18,21 +18,19 @@ namespace telemetry_receiver_api.Controllers
             _logger = logger;
         }
 
-        [Topic("telemetryeventhub", "daprhub1")]
-        [HttpPost("ehtelemetry")]
-        public IActionResult EhTelemetryReceive()
+        [HttpPost("telemetryeventhub")]
+        public ActionResult<string> EhTelemetryReceive([FromBody] dynamic data)
         {
-            _logger.LogInformation("test");
-            return new OkResult();
+            return new OkObjectResult("OK");
         }
-
+/*
         [Topic("servicebus-pubsub", "deviceevents")]
-        [HttpPost("sbtelemetry")]
-        public IActionResult SbTelemetryReceive()
+        [HttpPost("deviceevents")]
+        public ActionResult<string> SbTelemetryReceive([FromBody] string data, [FromServices] DaprClient dapr)
         {
-            _logger.LogInformation("test");
-            return new OkResult();
-        }
+            _logger.LogInformation(data);
+            return new OkObjectResult("OK");
+        }*/
     }
 
 }

@@ -1,0 +1,51 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: otamanifestservice
+  labels:
+    app: otamanifestservice
+spec:
+  selector:
+    app: otamanifestapp
+  ports:
+    - port: 5000
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: otamanifestapp
+  labels:
+    app: otamanifestapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otamanifestapp
+  template:
+    metadata:
+      labels:
+        app: otamanifestapp
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "daprotamanifestapp"
+        dapr.io/app-port: "5000"
+        dapr.io/log-level: "debug"
+    spec:
+      containers:
+      - name: otamanifestservice
+        image: daprexpacr.azurecr.io/ota-manifest-service-image
+        ports:
+        - containerPort: 5000
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: otamanifestservice-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: otamanifestservice
+          servicePort: 5000
