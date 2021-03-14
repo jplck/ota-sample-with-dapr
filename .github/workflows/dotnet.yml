@@ -23,7 +23,7 @@ jobs:
     - name: 'Resolve Project Dependencies Using Dotnet'
       shell: bash
       run: |
-        pushd '${{ env.PROJECT_FILE_PATH }}'
+        pushd '../src/telemetry-receiver-api'
         docker login -u ${{secrets.docker_username}} -p ${{secrets.docker_pwd}}
         docker build --push -t daprexpacr.azurecr.io/telemetryreceiverapi:latest .
         popd
