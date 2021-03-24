@@ -92,7 +92,7 @@ function GetDeploymentManifestUrl(manifestName) {
 
 function ExecuteKubectlApply(defUrl) {
     //exec
-    exec(`sudo kubectl apply -f ${defUrl}`, (error, stdout, stderr) => {
+    exec(`sudo kubectl apply -f "${defUrl}"`, (error, stdout, stderr) => {
         console.log(`executed: kubectl apply -f ${defUrl}`)
         if (error) {
             console.log(error)
