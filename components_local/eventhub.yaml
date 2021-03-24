@@ -22,4 +22,4 @@ spec:
   - name: storageContainerName  # Azure Storage Container Name
     value: "eventhubcontainer"
 auth:
-  secretStore: kubernetes
+  secretStore: secretstore
