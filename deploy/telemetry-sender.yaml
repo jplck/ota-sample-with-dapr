@@ -18,11 +18,7 @@ spec:
         dapr.io/app-id: "flowapiapp"
         dapr.io/app-port: "5000"
         dapr.io/log-level: "debug"
-        dapr.io/config: "appconfig"
         dapr.io/log-as-json: "true"
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9090"
-        prometheus.io/path: "/"
     spec:
       containers:
       - name: flowapiapp
