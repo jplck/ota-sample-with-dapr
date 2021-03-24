@@ -4,6 +4,11 @@ var path = require('path')
 var { exec } = require('child_process');
 require("dotenv").config();
 
+const { StorageSharedKeyCredential, 
+        BlobServiceClient, 
+        generateBlobSASQueryParameters, 
+        BlobSASPermissions } = require("@azure/storage-blob");
+
 var _caList = fs.readFileSync(path.join(__dirname, '/IoTHubRootCA_Baltimore.pem'))
 
 var _port = parseInt(process.env.IOT_HUB_PORT)
@@ -46,22 +51,57 @@ client.on("connect", () => {
 
             for (defIdx in definitions) {
                 const def = definitions[defIdx]
-                const defUri = def.imageName
+                
+                var defUrl = GetDeploymentManifestUrl("flow-api.yaml")
 
-                //exec
-                exec(`sudo kubectl apply -f ${defUri}`, (error, stdout, stderr) => {
-                    console.log(`executed: kubectl apply -f ${defUri}`)
-                    if (error) {
-                        console.log(error)
-                    }
-                    else if (stdout) {
-                        console.log(stdout)
-                    }
-                    else {
-                        console.log(stderr)
-                    }
-                })
+                ExecuteKubectlApply(defUrl)
             }
         }
     })
 })
+
+function GetDeploymentManifestUrl(manifestName) {
+    console.log(manifestName)
+
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+        process.env.MANIFEST_STORAGE_ACCOUNT, 
+        process.env.MANIFEST_STORAGE_ACCESS_KEY
+    );
+    
+    const blobServiceClient = new BlobServiceClient(
+        `https://${process.env.MANIFEST_STORAGE_ACCOUNT}.blob.core.windows.net`,
+        sharedKeyCredential
+    );
+    
+    const containerName = process.env.MANIFEST_STORAGE_CONTAINER_NAME
+
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(manifestName);
+
+    const sasToken = generateBlobSASQueryParameters({
+        containerName: containerName,
+        blobName: manifestName,
+        expiresOn: new Date(new Date().valueOf() + 86400),
+        permissions: BlobSASPermissions.parse("racwd")
+    }, sharedKeyCredential);
+      
+    const sasUrl = `${blockBlobClient.url}?${sasToken}`;
+
+    return sasUrl
+}
+
+function ExecuteKubectlApply(defUrl) {
+    //exec
+    exec(`sudo kubectl apply -f ${defUrl}`, (error, stdout, stderr) => {
+        console.log(`executed: kubectl apply -f ${defUrl}`)
+        if (error) {
+            console.log(error)
+        }
+        else if (stdout) {
+            console.log(stdout)
+        }
+        else {
+            console.log(stderr)
+        }
+    })
+}
