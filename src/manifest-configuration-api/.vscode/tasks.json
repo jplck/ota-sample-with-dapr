@@ -44,7 +44,7 @@
             "label": "daprd-debug",
             "type": "daprd",
             "dependsOn": "build",
-            "componentsPath": "./components"
+            "componentsPath": "../../components_local"
         },
         {
             "appId": "manifest-configuration-api",
