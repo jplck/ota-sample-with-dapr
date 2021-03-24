@@ -1,6 +1,7 @@
 var mqtt = require('mqtt')
 var fs = require('fs')
 var path = require('path')
+var { exec } = require('child_process');
 require("dotenv").config();
 
 var _caList = fs.readFileSync(path.join(__dirname, '/IoTHubRootCA_Baltimore.pem'))
@@ -48,7 +49,18 @@ client.on("connect", () => {
                 const defUri = def.imageName
 
                 //exec
-                console.log(`kubectl apply -f ${defUri}`)
+                exec(`sudo kubectl apply -f ${defUri}`, (error, stdout, stderr) => {
+                    console.log(`executed: kubectl apply -f ${defUri}`)
+                    if (error) {
+                        console.log(error)
+                    }
+                    else if (stdout) {
+                        console.log(stdout)
+                    }
+                    else {
+                        console.log(stderr)
+                    }
+                })
             }
         }
     })
