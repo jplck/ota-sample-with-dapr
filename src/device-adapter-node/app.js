@@ -18,7 +18,7 @@ var _username = `${_host}/${_clientId}/?api-version=2018-06-30`
 
 var _desiredPropsTopic = "$iothub/twin/PATCH/properties/desired/#"
 
-//az iot hub generate-sas-token --device-id device1 --hub-name daprhub1
+//az iot hub generate-sas-token --device-id [DEVICE_ID] --hub-name [HUB_NAME]
 var _password = process.env.PASSWORD
 
 var options = {
@@ -52,7 +52,7 @@ client.on("connect", () => {
             for (defIdx in definitions) {
                 const def = definitions[defIdx]
                 
-                var defUrl = GetDeploymentManifestUrl("flow-api.yaml")
+                var defUrl = GetDeploymentManifestUrl(def.imageName)
 
                 ExecuteKubectlApply(defUrl)
             }
