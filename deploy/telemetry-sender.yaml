@@ -15,13 +15,13 @@ spec:
         app: telemetrysenderapp
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "flowapiapp"
+        dapr.io/app-id: "telemetrysenderapp"
         dapr.io/app-port: "5000"
         dapr.io/log-level: "debug"
         dapr.io/log-as-json: "true"
     spec:
       containers:
-      - name: flowapiapp
+      - name: telemetrysenderapp
         image: youracr.azurecr.io/telemetry-sender:latest
         ports:
         - containerPort: 5000
