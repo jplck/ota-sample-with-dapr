@@ -1,0 +1,13 @@
+# copy this file to /lib/systemd/system/
+
+[Unit]
+Description=Device Iot Hub Adapter
+After=network-online.target
+
+[Service]
+Restart=on-failure
+WorkingDirectory=~/ota-sample-with-dapr/src/device-adapter-node
+ExecStart=/usr/bin/node ~/ota-sample-with-dapr/src/device-adapter-node/app.js
+
+[Install]
+WantedBy=multi-user.target
