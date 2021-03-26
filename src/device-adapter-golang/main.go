@@ -11,15 +11,24 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
-	"github.com/Azure/azure-storage-blob-go/azblob"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-var twinTopic string = "$iothub/twin/PATCH/properties/desired/"
+/*
+	Definiton of IoT Hub topics for device twin and d2c topics.
+*/
+var twinTopic string = "$iothub/twin/PATCH/properties/desired/#"
+var directMethodTopic string = "$iothub/methods/POST/#"
+var directMethodResponseTopic = "$iothub/methods/res/%d/?$rid=%s"
+var d2cPublishTopic = "devices/%s/messages/events/"
+
+var userNameTemplate = "%s/%s/?api-version=2018-06-30"
+var brokerHostTemplate = "ssl://%s:%s"
+
+var brokerCACert = "certs/IoTHubRootCA_Baltimore.pem"
 
 type Manifest struct {
 	Definitions map[string]Definition `json:"devicesoftwaredefinition"`
@@ -30,11 +39,28 @@ type Definition struct {
 	Version   string `json:"version"`
 }
 
-func main() {
-	mqttHost, mqttPort, mqttPassword, mqttClientId, isOk := setupContext()
+type SecurePackageDownloadTokenRequest struct {
+	PackageName string `json:"packageName"`
+	DeviceID    string `json:"deviceId"`
+}
 
-	if !isOk {
-		os.Exit(0)
+type SecurePackageDownloadTokenResponse struct {
+	PackageName string `json:"packageName"`
+	DeviceID    string `json:"deviceId"`
+	DlToken     string `json:"dltoken"`
+}
+
+type Context struct {
+	Host     string
+	Port     string
+	ClientID string
+}
+
+func main() {
+	context, contextValid := setupContext()
+
+	if !contextValid {
+		panic("Invalid context due to missing env variables.")
 	}
 
 	c := make(chan os.Signal, 1)
@@ -46,20 +72,16 @@ func main() {
 	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
 
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("ssl://%s:%s", mqttHost, mqttPort))
-	opts.SetClientID(mqttClientId)
-	opts.SetUsername(fmt.Sprintf("%s/%s/?api-version=2018-06-30", mqttHost, mqttClientId))
-	//az iot hub generate-sas-token --device-id [DEVICE_ID] --hub-name [HUB_NAME]
-	opts.SetPassword(mqttPassword)
-
-	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.AddBroker(fmt.Sprintf(brokerHostTemplate, context.Host, context.Port))
+	opts.SetClientID(context.ClientID)
+	opts.SetUsername(fmt.Sprintf(userNameTemplate, context.Host, context.ClientID))
 
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
 
-	opts.SetKeepAlive(60 * 2 * time.Second)
+	opts.SetKeepAlive(240 * time.Minute)
 
-	tlsConfig := NewTlsConfig()
+	tlsConfig := newTlsConfig()
 	opts.SetTLSConfig(tlsConfig)
 
 	client := mqtt.NewClient(opts)
@@ -70,107 +92,125 @@ func main() {
 	<-c
 }
 
-func NewTlsConfig() *tls.Config {
+func newTlsConfig() *tls.Config {
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile("IoTHubRootCA_Baltimore.pem")
+	ca, err := ioutil.ReadFile(brokerCACert)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
 	certPool.AppendCertsFromPEM(ca)
+
+	context, _ := setupContext()
+
+	certFile := fmt.Sprintf("certs/%s-public.pem", context.ClientID)
+	keyFile := fmt.Sprintf("certs/%s-private.pem", context.ClientID)
+
+	clientKeyPair, err := tls.LoadX509KeyPair(certFile, keyFile)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
 	return &tls.Config{
-		RootCAs: certPool,
+		RootCAs:      certPool,
+		Certificates: []tls.Certificate{clientKeyPair},
 	}
 }
 
-var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	if strings.HasPrefix(msg.Topic(), twinTopic) {
-		fmt.Printf("Received device twin update: %s from\n", msg.Payload())
-		ExecuteDefinitions(msg.Payload())
-	}
-}
-
-func ExecuteDefinitions(payload []byte) {
-	var manifest Manifest
-
-	err := json.Unmarshal(payload, &manifest)
-
-	if err == nil {
-
-		for key, definition := range manifest.Definitions {
-			fmt.Printf("Running preparations for definition with key %s\n", key)
-			fileUrl, err := NewDefinitionFileUrl(definition.ImageName, definition.Version)
-
-			if err != nil {
-				fmt.Println(err.Error())
-			} else {
-				ExecKubectlWithManifest(fileUrl)
-			}
-		}
-
-	} else {
-		fmt.Println(err)
-	}
-}
-
-func ExecKubectlWithManifest(fileUrl string) {
+func execKubectlWithManifest(fileUrl string) {
 	//exec
-	fmt.Printf("Executing kubectl with definition file '%s'\n", fileUrl)
+	log.Printf("Executing kubectl with definition file '%s'\n", fileUrl)
 	cmd := exec.Command("kubectl", "apply", "-f", fmt.Sprintf("'%s'", fileUrl))
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println(cmd.String())
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 	}
 }
 
-func NewDefinitionFileUrl(definitionName string, definitionVersion string) (string, error) {
-	fmt.Printf("Start downloading definition file %s with version %s\n", definitionName, definitionVersion)
+var directMethodHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("Received direct method call with %s\n", msg.Payload())
 
-	accName, accNameOk := os.LookupEnv("STORAGE_ACC_NAME")
-	accKey, accKeyOk := os.LookupEnv("STORAGE_ACC_KEY")
-	accContainerName, containerNameOk := os.LookupEnv("CONTAINER_NAME")
-	if !accNameOk || !accKeyOk || !containerNameOk {
-		fmt.Println("Missing ENV VAR for storage connection")
-		os.Exit(1)
-	}
-
-	credentials, err := azblob.NewSharedKeyCredential(accName, accKey)
+	parsedUrl, err := url.Parse(msg.Topic())
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return "", err
-	} else {
+		log.Fatal(err.Error())
+	}
 
-		sasQueryParams, err := azblob.AccountSASSignatureValues{
-			Protocol:      azblob.SASProtocolHTTPS,
-			ExpiryTime:    time.Now().UTC().Add(15 * time.Minute), //2 Min
-			Permissions:   azblob.AccountSASPermissions{Read: true, List: true}.String(),
-			Services:      azblob.AccountSASServices{Blob: true}.String(),
-			ResourceTypes: azblob.AccountSASResourceTypes{Container: true, Object: true}.String(),
-		}.NewSASQueryParameters(credentials)
-		if err != nil {
-			log.Fatal(err)
+	queryParts, err := url.ParseQuery(parsedUrl.RawQuery)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var dlCreds SecurePackageDownloadTokenResponse
+	unmarshalErr := json.Unmarshal(msg.Payload(), &dlCreds)
+
+	status := 1
+	if unmarshalErr != nil {
+		log.Println(unmarshalErr.Error())
+		status = 0
+	}
+
+	reqID := queryParts["$rid"]
+
+	/*
+		Reply to direct method request with empty response
+		Response topic needs the request ID from the incoming message and a status as int (0,1?)
+		"$iothub/methods/res/%d/?$rid=%s"
+	*/
+
+	respTopic := fmt.Sprintf(directMethodResponseTopic, 1, reqID[0])
+
+	if token := client.Publish(respTopic, byte(status), false, ""); token.Wait() && token.Error() != nil {
+		log.Printf("Unable to publish to reply to direct method call on topic %s and error: %s", respTopic, token.Error())
+	}
+
+}
+
+var deviceTwinUpdateHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("Received device twin update: %s with\n", msg.Payload())
+
+	var manifest Manifest
+	err := json.Unmarshal(msg.Payload(), &manifest)
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	context, _ := setupContext()
+
+	d2cTopic := fmt.Sprintf(d2cPublishTopic, context.ClientID)
+
+	for key, definition := range manifest.Definitions {
+
+		fmt.Printf("Received definition: %s", definition)
+
+		payload := SecurePackageDownloadTokenRequest{
+			PackageName: key,
+			DeviceID:    context.ClientID,
 		}
 
-		encodedSASParams := sasQueryParams.Encode()
+		json, _ := json.Marshal(payload)
 
-		pipeline := azblob.NewPipeline(credentials, azblob.PipelineOptions{})
-		u, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net?%s", accName, encodedSASParams))
-		serviceUrl := azblob.NewServiceURL(*u, pipeline)
-		containerUrl := serviceUrl.NewContainerURL(accContainerName)
-
-		blobUrl := containerUrl.NewBlockBlobURL(fmt.Sprintf("%s.yaml", definitionName))
-
-		return blobUrl.String(), nil
+		if token := client.Publish(d2cTopic, 1, false, json); token.Wait() && token.Error() != nil {
+			log.Printf("Unable to publish token request on topic %s and error: %s", d2cTopic, token.Error())
+		}
 	}
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
 	fmt.Println("Connected")
 
-	if token := client.Subscribe(fmt.Sprintf("%s%s", twinTopic, "#"), 0, nil); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	//Subscribe to changes in device twin
+	if token := client.Subscribe(twinTopic, 0, deviceTwinUpdateHandler); token.Wait() && token.Error() != nil {
+		log.Fatal(token.Error())
+	}
+
+	//Subscribe to direct method calls
+	if token := client.Subscribe(directMethodTopic, 0, directMethodHandler); token.Wait() && token.Error() != nil {
+		log.Fatal(token.Error())
 	}
 }
 
@@ -178,36 +218,16 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 	fmt.Printf("Connect lost: %v", err)
 }
 
-func setupContext() (mqttHost string,
-	mqttPort string,
-	mqttPassword string,
-	mqttClientId string,
-	isOk bool) {
+func setupContext() (Context, bool) {
+	clientID, clientIdExists := os.LookupEnv("CLIENT_ID")
+	port, portExists := os.LookupEnv("IOT_HUB_PORT")
+	host, hostExists := os.LookupEnv("IOT_HUB_HOST")
 
-	var shouldExit = false
-	mqttClientId, clientIdExists := os.LookupEnv("CLIENT_ID")
-	if !clientIdExists {
-		fmt.Println("Missing ENV VAR CLIENT_ID")
-		shouldExit = true
+	context := Context{
+		Host:     host,
+		Port:     port,
+		ClientID: clientID,
 	}
-
-	mqttPort, portExists := os.LookupEnv("IOT_HUB_PORT")
-	if !portExists {
-		fmt.Println("Missing ENV VAR IOT_HUB_PORT")
-		shouldExit = true
-	}
-
-	mqttHost, hostExists := os.LookupEnv("IOT_HUB_HOST")
-	if !hostExists {
-		fmt.Println("Missing ENV VAR IOT_HUB_HOST")
-		shouldExit = true
-	}
-
-	mqttPassword, passwordExists := os.LookupEnv("PASSWORD")
-	if !passwordExists {
-		fmt.Println("Missing ENV VAR PASSWORD")
-		shouldExit = true
-	}
-	isOk = !shouldExit
-	return
+	contextValid := clientIdExists && portExists && hostExists
+	return context, contextValid
 }
