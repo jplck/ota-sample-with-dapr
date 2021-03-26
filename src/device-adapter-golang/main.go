@@ -45,6 +45,7 @@ type SecurePackageDownloadTokenRequest struct {
 }
 
 type SecurePackageDownloadTokenResponse struct {
+	Url         string `json:"url"`
 	PackageName string `json:"packageName"`
 	DeviceID    string `json:"deviceId"`
 	DlToken     string `json:"dltoken"`
@@ -150,6 +151,23 @@ var directMethodHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.
 	if unmarshalErr != nil {
 		log.Println(unmarshalErr.Error())
 		status = 0
+	} else {
+
+		/*
+			This is currently a simplification. The idea is to use the received DLToken and the URL to download the package
+			with updated files from for example a storage.
+			The currently implementation uses the Url directly in the kubectl command. The url is a SAS URL for a file on a
+			blob storage.
+
+			{
+				"url": "[url to blob file on blob storage]",
+				"packageName": "[PackageName]"
+				"deviceId": "[ClientID]",
+				"dlToken": "[Token]"
+			}
+
+		*/
+		execKubectlWithManifest(dlCreds.Url)
 	}
 
 	reqID := queryParts["$rid"]
