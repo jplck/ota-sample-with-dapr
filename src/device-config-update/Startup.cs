@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Dapr;
 
-namespace Cloud.Device.Configuration
+namespace Cloud.DeviceConfiguration
 {
     public class Startup
     {

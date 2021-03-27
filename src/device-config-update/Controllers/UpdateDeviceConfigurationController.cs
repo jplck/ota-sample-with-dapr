@@ -8,13 +8,13 @@ using System.Linq;
 using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 
-namespace Cloud.Device.Configuration.Controllers
+namespace Cloud.DeviceConfiguration.Controllers
 {
     [ApiController]
     [Route("/manifest")]
-    public class UpdateManifestController : ControllerBase
+    public class UpdateDeviceConfigurationController : ControllerBase
     {
-        private readonly ILogger<UpdateManifestController> _logger;
+        private readonly ILogger<UpdateDeviceConfigurationController> _logger;
 
         private readonly DaprClient _daprClient;
 
@@ -24,7 +24,7 @@ namespace Cloud.Device.Configuration.Controllers
 
         private const string MANIFEST_PROP_NAME = "properties.desired.devicesoftwaredefinition";
 
-        public UpdateManifestController(DaprClient daprClient, ILogger<UpdateManifestController> logger)
+        public UpdateDeviceConfigurationController(DaprClient daprClient, ILogger<UpdateDeviceConfigurationController> logger)
         {
             _logger = logger;
             _daprClient = daprClient;

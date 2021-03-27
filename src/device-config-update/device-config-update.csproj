@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Cloud.Device.Configuration</RootNamespace>
+    <RootNamespace>Cloud.DeviceConfiguration</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Cloud.Device.Configuration
+namespace Cloud.DeviceConfiguration
 {
     public class Program
     {

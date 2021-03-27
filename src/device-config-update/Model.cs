@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.Azure.Devices;
 
-namespace Cloud.Device.Configuration
+namespace Cloud.DeviceConfiguration
 {
     public class DeviceSoftwareDefinition
     {
