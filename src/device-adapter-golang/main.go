@@ -14,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -39,6 +41,7 @@ type Definition struct {
 	Version   string `json:"version"`
 }
 
+//https://github.com/cloudevents/spec/blob/v1.0/spec.md#required-attributes
 type SecurePackageDownloadTokenRequest struct {
 	PackageName string `json:"packageName"`
 	DeviceID    string `json:"deviceId"`
@@ -48,13 +51,22 @@ type SecurePackageDownloadTokenResponse struct {
 	Url         string `json:"url"`
 	PackageName string `json:"packageName"`
 	DeviceID    string `json:"deviceId"`
-	DlToken     string `json:"dltoken"`
+	DlToken     string `json:"dlToken"`
 }
 
 type Context struct {
 	Host     string
 	Port     string
 	ClientID string
+}
+
+type CloudEvent struct {
+	ID          string      `json:"id"`
+	Source      string      `json:"source"`
+	SpecVersion string      `json:"specversion"`
+	Type        string      `json:"type"`
+	Time        time.Time   `json:"time"`
+	Data        interface{} `json:"data"`
 }
 
 func main() {
@@ -119,14 +131,15 @@ func newTlsConfig() *tls.Config {
 	}
 }
 
-func execKubectlWithManifest(fileUrl string) {
-	//exec
+func execKubectlWithManifest(fileUrl string) int {
 	log.Printf("Executing kubectl with definition file '%s'\n", fileUrl)
-	cmd := exec.Command("kubectl", "apply", "-f", fmt.Sprintf("'%s'", fileUrl))
+	cmd := exec.Command("kubectl", "apply", "-f", fmt.Sprintf("\"%s\"", fileUrl))
 
 	if err := cmd.Run(); err != nil {
-		log.Println(err.Error())
+		log.Printf("Exec for command '%s' failed with error : %s", cmd.String(), err.Error())
+		return 0
 	}
+	return 1
 }
 
 var directMethodHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -165,9 +178,8 @@ var directMethodHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.
 				"deviceId": "[ClientID]",
 				"dlToken": "[Token]"
 			}
-
 		*/
-		execKubectlWithManifest(dlCreds.Url)
+		status = execKubectlWithManifest(dlCreds.Url)
 	}
 
 	reqID := queryParts["$rid"]
@@ -177,10 +189,9 @@ var directMethodHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.
 		Response topic needs the request ID from the incoming message and a status as int (0,1?)
 		"$iothub/methods/res/%d/?$rid=%s"
 	*/
+	respTopic := fmt.Sprintf(directMethodResponseTopic, status, reqID[0])
 
-	respTopic := fmt.Sprintf(directMethodResponseTopic, 1, reqID[0])
-
-	if token := client.Publish(respTopic, byte(status), false, ""); token.Wait() && token.Error() != nil {
+	if token := client.Publish(respTopic, 1, false, ""); token.Wait() && token.Error() != nil {
 		log.Printf("Unable to publish to reply to direct method call on topic %s and error: %s", respTopic, token.Error())
 	}
 
@@ -210,7 +221,16 @@ var deviceTwinUpdateHandler mqtt.MessageHandler = func(client mqtt.Client, msg m
 			DeviceID:    context.ClientID,
 		}
 
-		json, _ := json.Marshal(payload)
+		cloudEvent := CloudEvent{
+			ID:          uuid.New().String(),
+			Source:      fmt.Sprintf("/device/%s/credentials/request", context.ClientID),
+			SpecVersion: "1.0",
+			Data:        payload,
+			Type:        "credentialrequest",
+			Time:        time.Now(),
+		}
+
+		json, _ := json.Marshal(cloudEvent)
 
 		if token := client.Publish(d2cTopic, 1, false, json); token.Wait() && token.Error() != nil {
 			log.Printf("Unable to publish token request on topic %s and error: %s", d2cTopic, token.Error())
