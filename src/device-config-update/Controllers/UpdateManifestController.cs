@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Azure.Devices;
 using Newtonsoft.Json;
 
-namespace ota_update_management.Controllers
+namespace Cloud.Device.Configuration.Controllers
 {
     [ApiController]
     [Route("/manifest")]

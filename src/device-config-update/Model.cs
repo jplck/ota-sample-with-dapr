@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.Azure.Devices;
 
-namespace ota_update_management
+namespace Cloud.Device.Configuration
 {
     public class DeviceSoftwareDefinition
     {

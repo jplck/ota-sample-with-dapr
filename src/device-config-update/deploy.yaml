@@ -1,51 +1,51 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: otamanifestservice
+  name: deviceconfigupdateservice
   labels:
-    app: otamanifestservice
+    app: deviceconfigupdateservice
 spec:
   selector:
-    app: otamanifestapp
+    app: deviceconfigupdateapp
   ports:
     - port: 5000
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: otamanifestapp
+  name: deviceconfigupdateapp
   labels:
-    app: otamanifestapp
+    app: deviceconfigupdateapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: otamanifestapp
+      app: deviceconfigupdateapp
   template:
     metadata:
       labels:
-        app: otamanifestapp
+        app: deviceconfigupdateapp
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "daprotamanifestapp"
+        dapr.io/app-id: "deviceconfigupdateapp"
         dapr.io/app-port: "5000"
         dapr.io/log-level: "debug"
     spec:
       containers:
-      - name: otamanifestservice
-        image: daprexpacr.azurecr.io/ota-manifest-service-image
+      - name: deviceconfigupdateapp
+        image: daprexpacr.azurecr.io/device-config-update-image:latest
         ports:
         - containerPort: 5000
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: otamanifestservice-ingress
+  name: deviceconfigupdateservice-ingress
 spec:
   rules:
   - http:
       paths:
       - path: /
         backend:
-          serviceName: otamanifestservice
+          serviceName: deviceconfigupdateservice
           servicePort: 5000

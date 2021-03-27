@@ -13,4 +13,4 @@ COPY --from=build-env /app/out .
 
 ENV ASPNETCORE_URLS="http://0.0.0.0:5000"
 EXPOSE 5000
-ENTRYPOINT ["dotnet", "ota-update-management.dll"]
+ENTRYPOINT ["dotnet", "device-config-update.dll"]

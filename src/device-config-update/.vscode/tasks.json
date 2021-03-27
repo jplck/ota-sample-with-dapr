@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/ota-update-management.csproj",
+                "${workspaceFolder}/device-config-update.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/ota-update-management.csproj",
+                "${workspaceFolder}/device-config-update.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,14 +32,14 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/ota-update-management.csproj",
+                "${workspaceFolder}/device-config-update.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
         },
         {
-            "appId": "manifest-configuration-api",
+            "appId": "deviceconfigupdateapp",
             "appPort": 5000,
             "label": "daprd-debug",
             "type": "daprd",
@@ -47,7 +47,7 @@
             "componentsPath": "../../components_local"
         },
         {
-            "appId": "manifest-configuration-api",
+            "appId": "deviceconfigupdateapp",
             "label": "daprd-down",
             "type": "daprd-down"
         }
