@@ -17,6 +17,8 @@ The criterias I have used as baseline requirements for this project were the fol
 ## Architecture
 The architecture is split into a device and a cloud part. The cloud portion is build upon Azure components like an IoT Hub and an Azure Kubernetes Service. The device part is build on top of a K3S and native components, running direcly on the OS without any orechstrations or containerizations.
 
+TODO:: Why everything via IoT Hub? Already secured via TLS and device cert...
+
 ### Tech Stack
 - Azure IoT Hub (https://azure.microsoft.com/en-us/services/iot-hub/)
 - Azure Kubernetes Service (https://azure.microsoft.com/en-us/services/kubernetes-service/)
