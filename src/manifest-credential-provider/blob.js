@@ -10,7 +10,7 @@ module.exports = function (manifestName, accountName, accountKey, containerName)
     );
     
     const blobServiceClient = new BlobServiceClient(
-        `https://${process.env.MANIFEST_STORAGE_ACCOUNT}.blob.core.windows.net`,
+        `https://${accountName}.blob.core.windows.net`,
         sharedKeyCredential
     );
 

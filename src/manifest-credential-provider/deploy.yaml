@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: otacredproviderapp
+  labels:
+    app: otacredproviderapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otacredproviderapp
+  template:
+    metadata:
+      labels:
+        app: otacredproviderapp
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "otacredproviderapp"
+        dapr.io/app-port: "8000"
+        dapr.io/log-level: "debug"
+        dapr.io/config: "appconfig"
+        dapr.io/log-as-json: "true"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/"
+    spec:
+      containers:
+      - name: otacredproviderapp
+        image: daprexpacr.azurecr.io/otacredprovider:latest
+        ports:
+        - containerPort: 8000

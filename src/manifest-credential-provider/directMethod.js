@@ -2,8 +2,7 @@ var Client = require('azure-iothub').Client;
 
 //https://github.com/Azure/azure-iot-sdk-node/blob/master/service/samples/javascript/device_method.js
 
-module.exports = function(deviceId, methodName, payload, timeout = 15) {
-    var connectionString = process.env.IOTHUB_CONNECTION_STRING;
+module.exports = function(connectionString, deviceId, methodName, payload, timeout = 15) {
     var methodParams = {
         methodName: methodName,
         payload: payload,
