@@ -2,11 +2,16 @@ package main
 
 import "time"
 
-type Manifest struct {
-	Definitions map[string]Definition `json:"devicesoftwaredefinition"`
+type DeviceSoftwareDefinition struct {
+	Manifest Manifest `json:"devicesoftwaredefinition"`
 }
 
-type Definition struct {
+type Manifest struct {
+	Description string              `json:"description"`
+	Packages    map[string]Packages `json:"packages"`
+}
+
+type Packages struct {
 	ImageName string `json:"imageName"`
 	Version   string `json:"version"`
 }

@@ -13,8 +13,8 @@ import (
 var deviceTwinUpdateHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received device twin update: %s with\n", msg.Payload())
 
-	var manifest Manifest
-	err := json.Unmarshal(msg.Payload(), &manifest)
+	var softwareDef DeviceSoftwareDefinition
+	err := json.Unmarshal(msg.Payload(), &softwareDef)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -23,7 +23,7 @@ var deviceTwinUpdateHandler mqtt.MessageHandler = func(client mqtt.Client, msg m
 
 	d2cTopic := fmt.Sprintf(d2cPublishTopic, ctx.ClientID)
 
-	for key, definition := range manifest.Definitions {
+	for key, definition := range softwareDef.Manifest.Packages {
 
 		fmt.Printf("Received definition: %s", definition)
 
