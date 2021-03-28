@@ -21,8 +21,8 @@ namespace Cloud.DeviceConfiguration
         [JsonProperty("description")]
         public string Description {get; set;}
 
-        [JsonProperty("definitions")]
-        public Dictionary<string, SwMetadata> Definitions {get; set;}
+        [JsonProperty("packages")]
+        public Dictionary<string, SwMetadata> Packages {get; set;}
     }
 
     public class SwMetadata

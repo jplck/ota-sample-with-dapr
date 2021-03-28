@@ -69,8 +69,8 @@ namespace Cloud.DeviceConfiguration.Controllers
                     existingConfig.Content.DeviceContent[MANIFEST_PROP_NAME].ToString()
                 );
 
-                var existingManifestDefs = existingManifest.Definitions;
-                var receivedUpdatedManifestDefs = message.Manifest.Definitions;
+                var existingPackages = existingManifest.Packages;
+                var receivedPackages = message.Manifest.Packages;
 
                 _logger.LogInformation("Creating config.");
 
@@ -79,7 +79,10 @@ namespace Cloud.DeviceConfiguration.Controllers
                     await registryManager.RemoveConfigurationAsync(message.BaselineId);
                 }
 
-                receivedUpdatedManifestDefs.ToList().ForEach(x => existingManifestDefs[x.Key] = x.Value);
+                receivedPackages.ToList().ForEach(x => existingPackages[x.Key] = x.Value);
+
+                var updatedManifest = message.Manifest;
+                updatedManifest.Packages = existingPackages;
 
                 var config = GenerateConfiguration(
                     message.ConfigId, 
@@ -88,7 +91,7 @@ namespace Cloud.DeviceConfiguration.Controllers
                     new Dictionary<string, object>() {
                     { 
                         MANIFEST_PROP_NAME,
-                        existingManifestDefs
+                        updatedManifest
                     }
                 });
                 
