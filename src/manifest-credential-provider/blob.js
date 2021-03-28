@@ -1,9 +1,9 @@
 const { StorageSharedKeyCredential, 
-    BlobServiceClient, 
-    generateBlobSASQueryParameters, 
-    BlobSASPermissions } = require("@azure/storage-blob");
+        BlobServiceClient, 
+        generateBlobSASQueryParameters, 
+        BlobSASPermissions } = require("@azure/storage-blob");
 
-module.exports = function (manifestName, accountName, accountKey, containerName) {
+function generateSASUrl (manifestName, accountName, accountKey, containerName) {
     const sharedKeyCredential = new StorageSharedKeyCredential(
         accountName, 
         accountKey
@@ -28,3 +28,5 @@ module.exports = function (manifestName, accountName, accountKey, containerName)
 
     return sasUrl
 }
+
+module.exports = generateSASUrl

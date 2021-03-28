@@ -1,27 +1,14 @@
 const express = require('express')
-const SASBlobUrl = require('./blob')
-const DirectMethod = require('./directMethod')
+const { generateSASUrl } = require('./blob')
+const { callDirectMethod } = require('./directMethod')
+const { getSecrets } = require('./helpers')
 require("dotenv").config();
 require('isomorphic-fetch');
 
 const app = express()
 app.use(express.json({ type: 'application/*+json' }));
 
-const daprPort = process.env.DAPR_HTTP_PORT || 3500;
 const port = 8000
-
-const secretsUrl = `http://localhost:${daprPort}/v1.0/secrets`;
-const secretStoreName = 'secretstore'
-
-async function getSecret(secretName) {
-    return await fetch(`${secretsUrl}/${secretStoreName}/${secretName}`)
-        .then(async (response) => {
-            if (!response.ok) {
-                throw "Could not get secret";
-            }
-            return (await response.json())[secretName];
-        })
-}
 
 app.get('/dapr/subscribe', (req, res) => {
     res.json(
@@ -37,6 +24,7 @@ app.get('/dapr/subscribe', (req, res) => {
 
 /*
     {
+        ++ Required CloudEvent fields
         "packageName": "[packageName]",
         "deviceId": "[deviceId]"
     }
@@ -49,21 +37,26 @@ app.post("/credentialrequest", async (req, res) => {
     var deviceId = req.body.data.deviceId
 
     try {
-        const accountName = await getSecret("PACKAGESTORAGEACCOUNT")
-        const accountKey = await getSecret("PACKAGESTORAGEACCOUNTKEY")
-        const containerName = await getSecret("PACKAGESTORAGECONTAINERNAME")
-        const iotHubConnectionString = await getSecret("IotHubConnectionString")
+        const secrets = await getSecrets()
 
-        console.log(accountKey)
+        const sasURL = generateSASUrl(
+            `${packageName}.yaml`, 
+            secrets["PACKAGESTORAGEACCOUNT"], 
+            secrets["PACKAGESTORAGEACCOUNTKEY"],
+            secrets["PACKAGESTORAGECONTAINERNAME"]
+        )
 
-        const sasURL = SASBlobUrl(`${packageName}.yaml`, accountName, accountKey, containerName)
-
-        DirectMethod(iotHubConnectionString, deviceId, "sendcredentials", {
-            url: sasURL,
-            deviceId: deviceId,
-            dlToken: "123456789",
-            packageName: packageName
-        })
+        callDirectMethod(
+            secrets["IotHubConnectionString"], 
+            deviceId, 
+            "sendcredentials", 
+            {
+                url: sasURL,
+                deviceId: deviceId,
+                dlToken: "123456789",
+                packageName: packageName
+            }
+        )
 
         res.sendStatus(200)
 
@@ -73,4 +66,4 @@ app.post("/credentialrequest", async (req, res) => {
     }
 })
 
-app.listen(port, () => console.log(`Node App listening on port ${port}!`));
+app.listen(port, () => console.log(`Package credentrial provider listening on port ${port}!`));
