@@ -1,21 +1,21 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: otacredproviderapp
+  name: packagecredproviderapp
   labels:
-    app: otacredproviderapp
+    app: packagecredproviderapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: otacredproviderapp
+      app: packagecredproviderapp
   template:
     metadata:
       labels:
-        app: otacredproviderapp
+        app: packagecredproviderapp
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "otacredproviderapp"
+        dapr.io/app-id: "packagecredproviderapp"
         dapr.io/app-port: "8000"
         dapr.io/log-level: "debug"
         dapr.io/config: "appconfig"
@@ -25,7 +25,7 @@ spec:
         prometheus.io/path: "/"
     spec:
       containers:
-      - name: otacredproviderapp
-        image: daprexpacr.azurecr.io/otacredprovider:latest
+      - name: packagecredproviderapp
+        image: daprexpacr.azurecr.io/packagecredprovider:latest
         ports:
         - containerPort: 8000
