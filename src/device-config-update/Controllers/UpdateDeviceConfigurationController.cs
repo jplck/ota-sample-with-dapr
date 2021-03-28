@@ -20,8 +20,6 @@ namespace Cloud.DeviceConfiguration.Controllers
 
         private RegistryManager _registryManager;
 
-        private const int DEFAULT_PRIORITY = 10;
-
         private const string MANIFEST_PROP_NAME = "properties.desired.devicesoftwaredefinition";
 
         public UpdateDeviceConfigurationController(DaprClient daprClient, ILogger<UpdateDeviceConfigurationController> logger)
@@ -74,9 +72,9 @@ namespace Cloud.DeviceConfiguration.Controllers
 
                 _logger.LogInformation("Creating config.");
 
-                if (message.BaselineId == message.ConfigId) {
-                    _logger.LogInformation("Removing existing base configuration. (ConfigId == BaseId)");
-                    await registryManager.RemoveConfigurationAsync(message.BaselineId);
+                if (message.BaselineId == message.ConfigId || message.BaselineId is null) {
+                    _logger.LogInformation("Removing existing configuration. (essentially an override)");
+                    await registryManager.RemoveConfigurationAsync(message.ConfigId);
                 }
 
                 receivedPackages.ToList().ForEach(x => existingPackages[x.Key] = x.Value);
@@ -84,10 +82,12 @@ namespace Cloud.DeviceConfiguration.Controllers
                 var updatedManifest = message.Manifest;
                 updatedManifest.Packages = existingPackages;
 
+                var priority = existingConfig.Priority < message.Priority ? message.Priority : existingConfig.Priority + 1;
+
                 var config = GenerateConfiguration(
                     message.ConfigId, 
                     existingConfig.TargetCondition, 
-                    existingConfig.Priority + 1, 
+                    priority, 
                     new Dictionary<string, object>() {
                     { 
                         MANIFEST_PROP_NAME,
@@ -119,7 +119,7 @@ namespace Cloud.DeviceConfiguration.Controllers
 
                 _logger.LogInformation($"Received manifest with config id {message.ConfigId}");
 
-                var config = GenerateConfiguration(message.ConfigId, "*", DEFAULT_PRIORITY, new Dictionary<string, object>() {
+                var config = GenerateConfiguration(message.ConfigId, "*", message.Priority, new Dictionary<string, object>() {
                     { 
                         MANIFEST_PROP_NAME,
                         message.Manifest
