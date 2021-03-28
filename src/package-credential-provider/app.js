@@ -1,7 +1,7 @@
 const express = require('express')
-const { generateSASUrl } = require('./blob')
-const { callDirectMethod } = require('./directMethod')
-const { getSecrets } = require('./helpers')
+const generateSASUrl = require('./blob')
+const callDirectMethod = require('./directMethod')
+const getSecrets = require('./helpers')
 require("dotenv").config();
 require('isomorphic-fetch');
 
@@ -29,7 +29,6 @@ app.get('/dapr/subscribe', (req, res) => {
         "deviceId": "[deviceId]"
     }
 */
-
 app.post("/credentialrequest", async (req, res) => {
 
     console.log("Starting credential provider...")
@@ -52,11 +51,15 @@ app.post("/credentialrequest", async (req, res) => {
             The file URL can than be used for a limited time on the device to
             either downloads its contents or apply it to a deployment.
         */
+        const accNameSecKey = "PACKAGESTORAGEACCOUNT";
+        const accKeySecKey = "PACKAGESTORAGEACCOUNTKEY";
+        const containerNameSecKey = "PACKAGESTORAGEACCOUNT";
+
         const sasURL = generateSASUrl(
             `${packageName}.yaml`, 
-            secrets["PACKAGESTORAGEACCOUNT"], 
-            secrets["PACKAGESTORAGEACCOUNTKEY"],
-            secrets["PACKAGESTORAGECONTAINERNAME"],
+            secrets[accNameSecKey][accNameSecKey], 
+            secrets[accKeySecKey][accKeySecKey],
+            secrets[containerNameSecKey][containerNameSecKey],
             new Date(new Date().valueOf() + 2 * 60) //2 Min
         )
 
@@ -66,8 +69,11 @@ app.post("/credentialrequest", async (req, res) => {
             the SAS Url and additional information the device can use to 
             download and use the update package
         */
+
+        const iotHubConnStrSecKey = "IotHubConnectionString"
+
         callDirectMethod(
-            secrets["IotHubConnectionString"], 
+            secrets[iotHubConnStrSecKey][iotHubConnStrSecKey], 
             deviceId, 
             "sendcredentials", 
             {

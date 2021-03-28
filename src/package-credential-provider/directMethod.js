@@ -2,7 +2,7 @@ var Client = require('azure-iothub').Client;
 
 //https://github.com/Azure/azure-iot-sdk-node/blob/master/service/samples/javascript/device_method.js
 
-function callDirectMethod(connectionString, deviceId, methodName, payload, timeout = 15) {
+const callDirectMethod = (connectionString, deviceId, methodName, payload, timeout = 15) => {
     var methodParams = {
         methodName: methodName,
         payload: payload,

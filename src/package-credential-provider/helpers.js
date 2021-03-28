@@ -8,7 +8,8 @@ async function getSecrets() {
             if (!response.ok) {
                 throw "Could not get secret";
             }
-            return (await response.json());
+            console.log("Retrieved secrets...")
+            return await response.json()
         })
 }
 
