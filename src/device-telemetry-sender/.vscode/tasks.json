@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"appId": "devicetelemetrysenderapp",
+			"appPort": 8000,
+			"label": "daprd-debug",
+			"type": "daprd",
+			"componentsPath": "./components_local"
+		},
+		{
+			"appId": "devicetelemetrysenderapp",
+			"label": "daprd-down",
+			"type": "daprd-down"
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch with Dapr",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "program": "${workspaceFolder}/src/",
+            "args": [],
+            "showLog": true,
+            "preLaunchTask": "daprd-debug",
+            "postDebugTask": "daprd-down"
+        }
+    ]
+}
