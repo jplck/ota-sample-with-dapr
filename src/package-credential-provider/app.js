@@ -53,14 +53,14 @@ app.post("/credentialrequest", async (req, res) => {
         */
         const accNameSecKey = "PACKAGESTORAGEACCOUNT";
         const accKeySecKey = "PACKAGESTORAGEACCOUNTKEY";
-        const containerNameSecKey = "PACKAGESTORAGEACCOUNT";
+        const containerNameSecKey = "PACKAGESTORAGECONTAINERNAME";
 
         const sasURL = generateSASUrl(
             `${packageName}.yaml`, 
             secrets[accNameSecKey][accNameSecKey], 
             secrets[accKeySecKey][accKeySecKey],
             secrets[containerNameSecKey][containerNameSecKey],
-            new Date(new Date().valueOf() + 2 * 60) //2 Min
+            120 //expires in 120 seconds
         )
 
         /*

@@ -3,7 +3,7 @@ const { StorageSharedKeyCredential,
         generateBlobSASQueryParameters, 
         BlobSASPermissions } = require("@azure/storage-blob");
 
-const generateSASUrl = (manifestName, accountName, accountKey, containerName, expiresOn) => {
+const generateSASUrl = (manifestName, accountName, accountKey, containerName, expiresIn) => {
     const sharedKeyCredential = new StorageSharedKeyCredential(
         accountName, 
         accountKey
@@ -17,10 +17,14 @@ const generateSASUrl = (manifestName, accountName, accountKey, containerName, ex
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blockBlobClient = containerClient.getBlockBlobClient(manifestName);
 
+    var expiryDate = new Date()
+    expiryDate.setSeconds(expiryDate.getSeconds() + expiresIn)
+
     const sasToken = generateBlobSASQueryParameters({
         containerName: containerName,
         blobName: manifestName,
-        expiresOn: expiresOn,
+        startsOn: new Date(),
+        expiresOn: expiryDate,
         permissions: BlobSASPermissions.parse("racwd")
     }, sharedKeyCredential);
       
