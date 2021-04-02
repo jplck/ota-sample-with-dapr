@@ -8,11 +8,10 @@ To make matters even more interesting, the challenge often includes requirements
 
 The criterias I have used as baseline requirements for this project were the following:
 1. Leverage DAPR in the Cloud and on the device
-2. Provide mean of container orchestration on the device
-3. Provide a light way mechanism for cloud to device and device to cloud communication
+2. Provide means of container orchestration on the device
+3. Provide a light weight mechanism for cloud to device and device to cloud communication
 4. Provide a secure mechanism for downloading firmware updates
-5. Do everything at scale for potentially millions of devices
-6. Consider being cloud agnostic
+5. Use Go or Rust on the Device. Be language agnostic on the cloud side
 
 ## Architecture
 The architecture is split into a device and a cloud part. The cloud portion is build upon Azure components like an IoT Hub and an Azure Kubernetes Service. The device part is build on top of a K3S and native components, running direcly on the OS without any orechstrations or containerizations.
