@@ -20,7 +20,11 @@ COPY setup-scripts/k3d-setup.sh /home
 RUN wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v4.0.0 bash \
     && wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash \
     && wget -q https://golang.org/dl/go1.17.linux-amd64.tar.gz \
-    && tar -C /usr/local/ -xzf go1.17.linux-amd64.tar.gz
+    && tar -C /usr/local/ -xzf go1.17.linux-amd64.tar.gz \
+    && apt-get install -y apt-transport-https && \
+       apt-get update && \
+       apt-get install -y dotnet-sdk-5.0 \
+    && apt-get install -y npm
 
 ENV PATH "${PATH}:/usr/local/go/bin"
 
