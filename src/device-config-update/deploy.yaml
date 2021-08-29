@@ -38,7 +38,15 @@ spec:
     spec:
       containers:
       - name: deviceconfigupdateapp
-        image: daprexpacr.azurecr.io/devconfupdate:latest
+        image: deviceconfigupdate:latest
+        imagePullPolicy: Never
+        resources:
+          requests:
+            memory: "254Mi"
+            cpu: "500m"
+          limits:
+            memory: "254Mi"
+            cpu: "500m"
         ports:
         - containerPort: 5000
 ---
