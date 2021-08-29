@@ -6,7 +6,7 @@ async function getSecrets() {
     return await fetch(`${secretsUrl}/${secretStoreName}/bulk`)
         .then(async (response) => {
             if (!response.ok) {
-                throw "Could not get secret";
+                throw "Could not get secrets";
             }
             console.log("Retrieved secrets...")
             return await response.json()
