@@ -20,8 +20,8 @@ func newTlsConfig() *tls.Config {
 
 	certPool.AppendCertsFromPEM(ca)
 
-	certFile := fmt.Sprintf("../certs/%s-public.pem", ctx.ClientID)
-	keyFile := fmt.Sprintf("../certs/%s-private.pem", ctx.ClientID)
+	certFile := fmt.Sprintf("../certs/certs/new-device-full-chain.cert.pem")
+	keyFile := fmt.Sprintf("../certs/private/new-device.key.pem")
 
 	clientKeyPair, err := tls.LoadX509KeyPair(certFile, keyFile)
 
