@@ -1,5 +1,8 @@
 # Device update flow with DAPR
 
+## Links
+https://github.com/microsoft/vscode-dev-containers/tree/main/containers/kubernetes-helm-minikube
+
 Recently I was challenged quite frequently with the question on how to handle updates of functionalty on memory and/or compute constrained IoT devices at scale. Usually this does not mean embedded but more the "raspberry pi" style of device.
 
 To make matters even more interesting, the challenge often includes requirements of having edge capabilities like container orchestrations, hight availability and so on.
