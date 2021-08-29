@@ -11,7 +11,9 @@
 	"extensions": [
 		"ms-azuretools.vscode-docker",
 		"inercia.vscode-k3d",
-		"golang.go"
+		"golang.go",
+		"ms-dotnettools.csharp",
+		"ms-azuretools.vscode-dapr"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
