@@ -1,0 +1,34 @@
+{
+	"name": "Devicecontainer",
+	"dockerFile": "Dockerfile",
+	"runArgs": ["--init", "--privileged"],
+	"overrideCommand": false,
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": {},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-azuretools.vscode-docker",
+		"inercia.vscode-k3d",
+		"golang.go"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	 "forwardPorts": [8080],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "kubectl version",
+
+	// Use 'postStartCommand' to run commands after the container is created like starting minikube.
+	// "postStartCommand": "k3d kubeconfig merge devicecluster --kubeconfig-merge-default --kubeconfig-switch-context",
+
+	// Minikube does not like running as root, so use a non-root user.
+	"remoteUser": "vscode",
+
+	"containerEnv": { 
+		"CLIENT_ID": "device1",
+		"IOT_HUB_PORT": "8883",
+		"IOT_HUB_HOST": "iotdemonstratorhub1.azure-devices.net"
+	}
+}
