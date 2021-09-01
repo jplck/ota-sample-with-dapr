@@ -7,7 +7,7 @@ do
       echo "."
       sleep 1
 done
-k3d cluster create devicecluster --api-port 127.0.0.1:8080 -p 80:80@loadbalancer -p 443:443@loadbalancer --k3s-server-arg "--no-deploy=traefik" --volume /etc/resolv.conf:/etc/resolv.conf
+k3d cluster create devicecluster --api-port 127.0.0.1:8080 -p 80:80@loadbalancer -p 443:443@loadbalancer --k3s-server-arg "--no-deploy=traefik"
 
 echo "Switching context..."
 
